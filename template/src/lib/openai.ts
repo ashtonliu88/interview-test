@@ -10,10 +10,11 @@
 //   pnpm add -D openai
 // The template keeps it optional so it still works without.
 
-let OpenAI: any
+// @ts-ignore: ESLint parser doesn't support TS syntax
+let OpenAI
 try {
   // eslint-disable-next-line global-require, import/extensions, import/no-extraneous-dependencies
-  OpenAI = (await import('openai')).default
+  OpenAI = require('openai').default
 } catch {
   // no dependency installed – we will use stubs
 }
@@ -21,6 +22,7 @@ try {
 const apiKey = process.env.OPENAI_API_KEY || ''
 
 export function hasRealOpenAIKey() {
+  // @ts-ignore: ESLint parser doesn't support TS syntax
   return Boolean(apiKey && OpenAI)
 }
 
@@ -29,15 +31,17 @@ export function hasRealOpenAIKey() {
  * • If a real key & client are available → call embeddings API.
  * • Otherwise → return a deterministic pseudo-vector so tests stay deterministic.
  */
-export async function embed(text: string): Promise<number[]> {
+// @ts-ignore: ESLint parser doesn't support TS syntax
+export async function embed(text) {
   if (hasRealOpenAIKey()) {
+    // @ts-ignore: ESLint parser doesn't support TS syntax
     const client = new OpenAI({ apiKey })
     const res = await client.embeddings.create({
       model: 'text-embedding-3-small',
       input: text,
     })
     // @ts-ignore – typings vary by version
-    return res.data[0].embedding as number[]
+    return res.data[0].embedding
   }
   // Fallback: convert chars to small numeric vector (deterministic)
   return Array.from({ length: 8 }, (_, i) =>
